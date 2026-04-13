@@ -15,10 +15,6 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-  // Icônes réseaux sociaux corrigées
-  FacebookIcon,
-  TwitterIcon,
-  InstagramIcon,
   Shield,
   Award,
   Zap,

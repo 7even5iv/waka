@@ -10,7 +10,7 @@ import {
   MapPin, ArrowRight, Zap, ShieldCheck, Star, User, Menu, Clock, Truck,
   Award, Phone, Mail, ChevronRight, X, Heart,
   Settings, LogOut, ChevronDown, Home, Info, MessageCircle,
-  Facebook, Twitter, Instagram, Linkedin, Youtube, Globe, Gift, Coffee,
+  Globe, Gift, Coffee,
   Sparkles, ThumbsUp, Loader2
 } from 'lucide-react'
 
@@ -90,7 +90,7 @@ const SocialIcons = {
 
 // ========== COMPOSANT LOGO ==========
 const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
-  const [imageError, setImageError] = useState(false)
+  const [imageError, setImageError] = React.useState(false)
   const logoSrc = "/images/logo.png"
   const fallbackSrc = "/images/logo-fallback.png"
 
@@ -176,12 +176,12 @@ const UserMenuComponent = ({ user, onLogout, onClose }: { user: User; onLogout: 
 
 // ========== MODAL DE CONNEXION ==========
 const LoginModalComponent = ({ isOpen, onClose, onLogin }: { isOpen: boolean; onClose: () => void; onLogin: (user: User) => void }) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isRegistering, setIsRegistering] = useState(false)
-  const [name, setName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  const [isRegistering, setIsRegistering] = React.useState(false)
+  const [name, setName] = React.useState('')
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -383,9 +383,9 @@ const LoginModalComponent = ({ isOpen, onClose, onLogin }: { isOpen: boolean; on
 const CustomCursor = () => {
   const cursorX = useMotionValue(0)
   const cursorY = useMotionValue(0)
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = React.useState(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX - 16)
       cursorY.set(e.clientY - 16)
@@ -425,7 +425,7 @@ const CustomCursor = () => {
 
 // ========== CARD VILLE OPTIMISÉE ==========
 const CityCardComponent = ({ city, index, onSelect }: { city: City; index: number; onSelect: (cityId: string) => void }) => {
-  const [imageError, setImageError] = useState(false)
+  const [imageError, setImageError] = React.useState(false)
   const fallbackImage = "/images/fallback-city.jpg"
 
   return (
@@ -530,13 +530,13 @@ const TestimonialCardComponent = ({ name, role, content, rating }: Testimonial) 
 // ========== PAGE PRINCIPALE ==========
 export default function HomePage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const userMenuRef = useRef<HTMLDivElement>(null)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const [user, setUser] = React.useState<User | null>(null)
+  const [scrolled, setScrolled] = React.useState(false)
+  const [showLoginModal, setShowLoginModal] = React.useState(false)
+  const [showUserMenu, setShowUserMenu] = React.useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const userMenuRef = React.useRef<HTMLDivElement>(null)
+  const mobileMenuRef = React.useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll()
   const smoothY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 })
@@ -584,7 +584,7 @@ export default function HomePage() {
     { name: 'Blog', href: '/blog', icon: Globe },
   ]
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Charger l'utilisateur
     const savedUser = localStorage.getItem('waka_user')
     if (savedUser) {
@@ -686,51 +686,49 @@ export default function HomePage() {
 
               <div className="h-6 w-px bg-green-200" />
 
-              <AnimatePresence mode="wait">
-                {user ? (
-                  <div className="relative" ref={userMenuRef}>
-                    <motion.button
-                      key="user-logged"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                      className="flex items-center gap-2 group cursor-pointer"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-md group-hover:scale-110 transition-transform">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-sm font-semibold text-green-800 group-hover:text-green-600 transition-colors hidden sm:inline">
-                        {user.name.split(' ')[0]}
-                      </span>
-                      <ChevronDown size={16} className="text-green-600" />
-                    </motion.button>
-
-                    <AnimatePresence>
-                      {showUserMenu && (
-                        <UserMenuComponent user={user} onLogout={handleLogout} onClose={() => setShowUserMenu(false)} />
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <motion.div
-                    key="user-guest"
+              {user ? (
+                <div className="relative" ref={userMenuRef}>
+                  <motion.button
+                    key="user-logged"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 group cursor-pointer"
                   >
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowLoginModal(true)}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                    >
-                      <User size={16} />
-                      Connexion
-                    </motion.button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-md group-hover:scale-110 transition-transform">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-semibold text-green-800 group-hover:text-green-600 transition-colors hidden sm:inline">
+                      {user.name.split(' ')[0]}
+                    </span>
+                    <ChevronDown size={16} className="text-green-600" />
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <UserMenuComponent user={user} onLogout={handleLogout} onClose={() => setShowUserMenu(false)} />
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <motion.div
+                  key="user-guest"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowLoginModal(true)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                  >
+                    <User size={16} />
+                    Connexion
+                  </motion.button>
+                </motion.div>
+              )}
             </div>
 
             {/* Bouton Hamburger */}
