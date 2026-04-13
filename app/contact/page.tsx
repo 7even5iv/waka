@@ -61,7 +61,8 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: any) => {
     </>
   )
 
-  if (onClick) {
+  // Si c'est un bouton d'action sans href (ex: dans UserMenu pour fermer le menu)
+  if (onClick && !href) {
     return (
       <button onClick={onClick} className={`flex items-center gap-2 transition-colors ${mobile
         ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50 w-full"
@@ -72,57 +73,24 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: any) => {
     )
   }
 
+  // Gérer le clic pour fermer le menu mobile avant la navigation
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onClick) {
+      onClick() // Ferme le menu mobile
+    }
+  }
+
   return (
-    <Link href={href} className={`flex items-center gap-2 transition-colors ${mobile
-      ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50"
-      : "text-green-700 hover:text-green-500"
-      }`}>
+    <Link
+      href={href}
+      onClick={handleLinkClick}
+      className={`flex items-center gap-2 transition-colors ${mobile
+        ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50"
+        : "text-green-700 hover:text-green-500"
+        }`}
+    >
       {linkContent}
     </Link>
-  )
-}
-
-// ========== COMPOSANT LOGO ==========
-const Logo = ({ className = "h-8 w-auto" }) => {
-  const [imageError, setImageError] = useState(false)
-  const logoSrc = "/images/logo.png"
-  const fallbackSrc = "/images/logo-fallback.png"
-
-  return (
-    <Link href="/" className="flex items-center gap-2 group">
-      <div className="relative">
-        <Image
-          src={imageError ? fallbackSrc : logoSrc}
-          alt="WAKA Logo"
-          width={200}
-          height={70}
-          className={`${className} object-contain transition-all duration-300 group-hover:scale-105`}
-          priority
-          onError={() => setImageError(true)}
-        />
-      </div>
-    </Link>
-  )
-}
-
-// ========== COMPOSANT CARTE CONTACT ==========
-const ContactCard = ({ icon: Icon, title, content, subContent, color, delay, onClick }: any) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      whileHover={{ y: -5 }}
-      onClick={onClick}
-      className={`bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all group ${onClick ? 'cursor-pointer' : ''}`}
-    >
-      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-        <Icon size={28} className="text-white" />
-      </div>
-      <h3 className="text-xl font-bold text-green-900 mb-2">{title}</h3>
-      <p className="text-green-700 font-medium mb-1">{content}</p>
-      {subContent && <p className="text-green-500 text-sm">{subContent}</p>}
-    </motion.div>
   )
 }
 
