@@ -111,7 +111,7 @@ const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
   )
 }
 
-// ========== COMPOSANT DE NAVIGATION ==========
+// ========== COMPOSANT DE NAVIGATION (CORRIGÉ) ==========
 const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: {
   href?: string;
   icon: React.ElementType;
@@ -126,7 +126,8 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: {
     </>
   )
 
-  if (onClick) {
+  // Si c'est un bouton d'action sans href (ex: dans UserMenu pour fermer le menu)
+  if (onClick && !href) {
     return (
       <button onClick={onClick} className={`flex items-center gap-2 transition-colors ${mobile
         ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50 w-full"
@@ -137,11 +138,22 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: {
     )
   }
 
+  // Gérer le clic pour fermer le menu mobile avant la navigation
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onClick) {
+      onClick() // Ferme le menu mobile
+    }
+  }
+
   return (
-    <Link href={href || '#'} className={`flex items-center gap-2 transition-colors ${mobile
-      ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50"
-      : "text-green-700 hover:text-green-500"
-      }`}>
+    <Link
+      href={href || '#'}
+      onClick={handleLinkClick}
+      className={`flex items-center gap-2 transition-colors ${mobile
+        ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50"
+        : "text-green-700 hover:text-green-500"
+        }`}
+    >
       {linkContent}
     </Link>
   )
