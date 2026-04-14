@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Head from 'next/head'
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 import {
-  ChevronLeft, MapPin, Calendar, Star, Users, Target, Shield, Zap,
+  MapPin, Calendar, Star, Users, Target, Shield, Zap,
   Phone, Mail,
   Award, Clock, Truck, Heart, Globe, Briefcase,
   Home, Info, MessageCircle, Coffee, Menu, X,
@@ -68,7 +68,30 @@ const SocialIcons = {
   )
 }
 
-// ========== COMPOSANT NAV LINK ==========
+// ========== COMPOSANT LOGO ==========
+const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
+  const [imageError, setImageError] = useState(false)
+  const logoSrc = "/images/logo.png"
+  const fallbackSrc = "/images/logo-fallback.png"
+
+  return (
+    <Link href="/" className="flex items-center gap-2 group">
+      <div className="relative">
+        <Image
+          src={imageError ? fallbackSrc : logoSrc}
+          alt="WAKA Logo"
+          width={200}
+          height={70}
+          className={`${className} object-contain transition-all duration-300 group-hover:scale-105`}
+          priority
+          onError={() => setImageError(true)}
+        />
+      </div>
+    </Link>
+  )
+}
+
+// ========== COMPOSANT NAV LINK (CORRIGÉ) ==========
 const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: any) => {
   const linkContent = (
     <>
@@ -107,6 +130,69 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: any) => {
     >
       {linkContent}
     </Link>
+  )
+}
+
+// ========== COMPOSANT CARTE ÉQUIPE ==========
+const TeamCard = ({ name, role, icon: Icon, description, delay }: any) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      whileHover={{ y: -5 }}
+      className="bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all text-center group"
+    >
+      <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-md">
+        <Icon size={32} className="text-white" />
+      </div>
+      <h3 className="text-lg font-bold text-green-900 mb-1">{name}</h3>
+      <p className="text-xs font-bold text-green-500 uppercase tracking-wider mb-3">{role}</p>
+      <p className="text-green-600 text-sm leading-relaxed">{description}</p>
+    </motion.div>
+  )
+}
+
+// ========== COMPOSANT VALEUR ==========
+const ValueCard = ({ icon: Icon, title, description, delay }: any) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      whileHover={{ y: -5 }}
+      className="bg-green-50 rounded-2xl p-6 border border-green-100 text-center group hover:bg-green-100 transition-all cursor-pointer"
+    >
+      <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+        <Icon size={24} className="text-white" />
+      </div>
+      <h3 className="font-bold text-green-900 mb-2 text-lg">{title}</h3>
+      <p className="text-green-600 text-sm leading-relaxed">{description}</p>
+    </motion.div>
+  )
+}
+
+// ========== COMPOSANT TIMELINE ==========
+const TimelineItem = ({ year, title, description, delay }: any) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      className="relative pl-8 pb-8 border-l-2 border-green-200 last:border-0"
+    >
+      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-600" />
+      <div className="mb-2">
+        <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">
+          {year}
+        </span>
+      </div>
+      <h3 className="text-xl font-bold text-green-900 mb-2">{title}</h3>
+      <p className="text-green-600">{description}</p>
+    </motion.div>
   )
 }
 
@@ -251,13 +337,13 @@ export default function AboutPage() {
           style={{ scaleX, transformOrigin: "0%" }}
         />
 
-        {/* Header - Sans recherche ni panier */}
+        {/* Header */}
         <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-green-100 shadow-sm' : 'bg-white border-b border-green-100'
           }`}>
           <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <Logo className="h-10 w-auto" />
 
-            {/* Desktop Menu - Sans recherche ni panier */}
+            {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-6">
               {navLinks.map((link) => (
                 <NavLink key={link.name} href={link.href} icon={link.icon} label={link.name} />
@@ -326,7 +412,7 @@ export default function AboutPage() {
             </button>
           </div>
 
-          {/* Mobile Menu - Sans recherche ni panier */}
+          {/* Mobile Menu */}
           <AnimatePresence>
             {mobileMenuOpen && (
               <motion.div
@@ -494,8 +580,8 @@ export default function AboutPage() {
               <button
                 onClick={() => setActiveTab('mission')}
                 className={`px-6 py-2 rounded-full font-medium transition-all ${activeTab === 'mission'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
-                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
+                  : 'bg-green-50 text-green-700 hover:bg-green-100'
                   }`}
               >
                 Notre Mission
@@ -503,8 +589,8 @@ export default function AboutPage() {
               <button
                 onClick={() => setActiveTab('vision')}
                 className={`px-6 py-2 rounded-full font-medium transition-all ${activeTab === 'vision'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
-                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
+                  : 'bg-green-50 text-green-700 hover:bg-green-100'
                   }`}
               >
                 Notre Vision

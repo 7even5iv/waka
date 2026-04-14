@@ -94,6 +94,50 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: any) => {
   )
 }
 
+// ========== COMPOSANT LOGO ==========
+const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
+  const [imageError, setImageError] = useState(false)
+  const logoSrc = "/images/logo.png"
+  const fallbackSrc = "/images/logo-fallback.png"
+
+  return (
+    <Link href="/" className="flex items-center gap-2 group">
+      <div className="relative">
+        <Image
+          src={imageError ? fallbackSrc : logoSrc}
+          alt="WAKA Logo"
+          width={200}
+          height={70}
+          className={`${className} object-contain transition-all duration-300 group-hover:scale-105`}
+          priority
+          onError={() => setImageError(true)}
+        />
+      </div>
+    </Link>
+  )
+}
+
+// ========== COMPOSANT CARTE CONTACT ==========
+const ContactCard = ({ icon: Icon, title, content, subContent, color, delay, onClick }: any) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      whileHover={{ y: -5 }}
+      onClick={onClick}
+      className={`bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all group ${onClick ? 'cursor-pointer' : ''}`}
+    >
+      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+        <Icon size={28} className="text-white" />
+      </div>
+      <h3 className="text-xl font-bold text-green-900 mb-2">{title}</h3>
+      <p className="text-green-700 font-medium mb-1">{content}</p>
+      {subContent && <p className="text-green-500 text-sm">{subContent}</p>}
+    </motion.div>
+  )
+}
+
 // ========== COMPOSANT FAQ ==========
 const FAQItem = ({ question, answer, isOpen, onToggle, index }: any) => {
   return (
