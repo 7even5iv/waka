@@ -11,7 +11,7 @@ import {
   Award, Phone, Mail, ChevronRight, X, Heart,
   Settings, LogOut, ChevronDown, Home, Info, MessageCircle,
   Globe, Gift, Coffee,
-  Sparkles, ThumbsUp, Loader2
+  Sparkles, ThumbsUp
 } from 'lucide-react'
 
 // ========== TYPES ==========
@@ -90,7 +90,7 @@ const SocialIcons = {
 
 // ========== COMPOSANT LOGO ==========
 const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
-  const [imageError, setImageError] = React.useState(false)
+  const [imageError, setImageError] = useState(false)
   const logoSrc = "/images/logo.png"
   const fallbackSrc = "/images/logo-fallback.png"
 
@@ -141,7 +141,7 @@ const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: {
   // Gérer le clic pour fermer le menu mobile avant la navigation
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (onClick) {
-      onClick() // Ferme le menu mobile
+      onClick()
     }
   }
 
@@ -186,218 +186,13 @@ const UserMenuComponent = ({ user, onLogout, onClose }: { user: User; onLogout: 
   )
 }
 
-// ========== MODAL DE CONNEXION ==========
-const LoginModalComponent = ({ isOpen, onClose, onLogin }: { isOpen: boolean; onClose: () => void; onLogin: (user: User) => void }) => {
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [isRegistering, setIsRegistering] = React.useState(false)
-  const [name, setName] = React.useState('')
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [error, setError] = React.useState('')
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (!validateEmail(email)) {
-      setError('Veuillez entrer un email valide')
-      return
-    }
-
-    if (isRegistering && !name.trim()) {
-      setError('Veuillez entrer votre nom')
-      return
-    }
-
-    if (!password) {
-      setError('Veuillez entrer votre mot de passe')
-      return
-    }
-
-    setIsLoading(true)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    try {
-      if (isRegistering) {
-        const newUser: User = {
-          id: Date.now(),
-          name: name.trim(),
-          email: email,
-          createdAt: new Date().toISOString()
-        }
-        localStorage.setItem('waka_user', JSON.stringify(newUser))
-        onLogin(newUser)
-      } else {
-        const savedUser = localStorage.getItem('waka_user')
-        if (savedUser) {
-          const user = JSON.parse(savedUser)
-          if (user.email === email) {
-            onLogin(user)
-          } else {
-            const newUser: User = {
-              id: Date.now(),
-              name: email.split('@')[0],
-              email: email,
-              createdAt: new Date().toISOString()
-            }
-            localStorage.setItem('waka_user', JSON.stringify(newUser))
-            onLogin(newUser)
-          }
-        } else {
-          const newUser: User = {
-            id: Date.now(),
-            name: email.split('@')[0],
-            email: email,
-            createdAt: new Date().toISOString()
-          }
-          localStorage.setItem('waka_user', JSON.stringify(newUser))
-          onLogin(newUser)
-        }
-      }
-      onClose()
-      setEmail('')
-      setPassword('')
-      setName('')
-    } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-green-900">
-            {isRegistering ? 'Créer un compte' : 'Connexion'}
-          </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isRegistering && (
-            <div>
-              <label className="block text-sm font-medium text-green-700 mb-1">Nom complet</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                required
-                disabled={isLoading}
-                placeholder="Jean Dupont"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-green-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-              required
-              disabled={isLoading}
-              placeholder="exemple@email.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-green-700 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-              required
-              disabled={isLoading}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Chargement...
-              </>
-            ) : (
-              isRegistering ? "S'inscrire" : "Se connecter"
-            )}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => {
-              setIsRegistering(!isRegistering)
-              setError('')
-            }}
-            className="text-sm text-green-600 hover:text-green-700 transition-colors"
-            disabled={isLoading}
-          >
-            {isRegistering ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
-          </button>
-        </div>
-
-        {!isRegistering && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => {
-                setEmail('demo@waka.cm')
-                setPassword('demo123')
-              }}
-              className="text-xs text-green-500 hover:text-green-600 transition-colors"
-            >
-              Mode démo : remplir automatiquement
-            </button>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  )
-}
-
 // ========== CUSTOM CURSOR ==========
 const CustomCursor = () => {
   const cursorX = useMotionValue(0)
   const cursorY = useMotionValue(0)
-  const [isVisible, setIsVisible] = React.useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX - 16)
       cursorY.set(e.clientY - 16)
@@ -437,7 +232,7 @@ const CustomCursor = () => {
 
 // ========== CARD VILLE OPTIMISÉE ==========
 const CityCardComponent = ({ city, index, onSelect }: { city: City; index: number; onSelect: (cityId: string) => void }) => {
-  const [imageError, setImageError] = React.useState(false)
+  const [imageError, setImageError] = useState(false)
   const fallbackImage = "/images/fallback-city.jpg"
 
   return (
@@ -542,13 +337,12 @@ const TestimonialCardComponent = ({ name, role, content, rating }: Testimonial) 
 // ========== PAGE PRINCIPALE ==========
 export default function HomePage() {
   const router = useRouter()
-  const [user, setUser] = React.useState<User | null>(null)
-  const [scrolled, setScrolled] = React.useState(false)
-  const [showLoginModal, setShowLoginModal] = React.useState(false)
-  const [showUserMenu, setShowUserMenu] = React.useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const userMenuRef = React.useRef<HTMLDivElement>(null)
-  const mobileMenuRef = React.useRef<HTMLDivElement>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll()
   const smoothY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 })
@@ -596,7 +390,7 @@ export default function HomePage() {
     { name: 'Blog', href: '/blog', icon: Globe },
   ]
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Charger l'utilisateur
     const savedUser = localStorage.getItem('waka_user')
     if (savedUser) {
@@ -626,11 +420,6 @@ export default function HomePage() {
       document.removeEventListener('click', handleClickOutside)
     }
   }, [mobileMenuOpen])
-
-  const handleLogin = (userData: User) => {
-    setUser(userData)
-    setShowLoginModal(false)
-  }
 
   const handleLogout = () => {
     localStorage.removeItem('waka_user')
@@ -701,10 +490,8 @@ export default function HomePage() {
               {user ? (
                 <div className="relative" ref={userMenuRef}>
                   <motion.button
-                    key="user-logged"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-2 group cursor-pointer"
                   >
@@ -724,22 +511,16 @@ export default function HomePage() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <motion.div
-                  key="user-guest"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                >
+                <Link href="/login">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowLoginModal(true)}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                   >
                     <User size={16} />
                     Connexion
                   </motion.button>
-                </motion.div>
+                </Link>
               )}
             </div>
 
@@ -842,17 +623,15 @@ export default function HomePage() {
                         </button>
                       </div>
                     ) : (
-                      <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setShowLoginModal(true)
-                          setMobileMenuOpen(false)
-                        }}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-                      >
-                        <User size={18} />
-                        Connexion / Inscription
-                      </motion.button>
+                      <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                        <motion.button
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+                        >
+                          <User size={18} />
+                          Connexion / Inscription
+                        </motion.button>
+                      </Link>
                     )}
                   </motion.div>
 
@@ -1159,6 +938,7 @@ export default function HomePage() {
                   <li><Link href="/about" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Info size={14} /> À propos</Link></li>
                   <li><Link href="/contact" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><MessageCircle size={14} /> Contact</Link></li>
                   <li><Link href="/services" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Coffee size={14} /> Services</Link></li>
+                  <li><Link href="/blog" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Globe size={14} /> Blog</Link></li>
                 </ul>
               </div>
 
@@ -1214,13 +994,6 @@ export default function HomePage() {
             </div>
           </div>
         </footer>
-
-        {/* Modals */}
-        <AnimatePresence>
-          {showLoginModal && (
-            <LoginModalComponent isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onLogin={handleLogin} />
-          )}
-        </AnimatePresence>
 
         <style jsx global>{`
           @keyframes blob {
