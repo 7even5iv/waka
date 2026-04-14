@@ -594,7 +594,7 @@ export default function MenuPage({ params }: { params: Promise<{ city: string, p
                 </div>
               </div>
               <h1 className="text-2xl md:text-3xl font-black drop-shadow-lg">{currentPartner?.name}</h1>
-              <p className="text-sm text-gray-200">Livraison gratuite à partir de 5000 FCFA</p>
+              <p className="text-sm text-gray-200">Livraison gratuite à partir de 1500 FCFA</p>
             </div>
           </div>
         </div>
