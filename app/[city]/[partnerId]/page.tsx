@@ -180,7 +180,7 @@ const PARTNERS: Partner[] = [
   },
   {
     id: 4,
-    name: "Marché Central",
+    name: "Carrefour Market",
     category: "Supermarché",
     city: "douala",
     cover: "/images/market.jpg",
