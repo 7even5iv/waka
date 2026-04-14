@@ -15,8 +15,8 @@ import {
 const PARTNERS = [
   {
     id: 1,
-    name: "Le Bistrot Parisien",
-    desc: "Cuisine française authentique",
+    name: "The Yard",
+    desc: "Cuisine africaine et européenne",
     category: "Restaurant",
     city: "douala",
     cover: "/images/restaurant1.jpg",
@@ -45,8 +45,8 @@ const PARTNERS = [
   },
   {
     id: 4,
-    name: "Marché Central",
-    desc: "Épicerie fine et produits locaux",
+    name: "Carrefour Market",
+    desc: "courses et achats",
     category: "Supermarché",
     city: "douala",
     cover: "/images/market.jpg",
@@ -55,8 +55,8 @@ const PARTNERS = [
   },
   {
     id: 5,
-    name: "Saveurs d'Asie",
-    desc: "Cuisine asiatique et sushi",
+    name: "The Famous",
+    desc: "Cuisine africaine et européenne",
     category: "Restaurant",
     city: "yaounde",
     cover: "/images/asian.jpg",

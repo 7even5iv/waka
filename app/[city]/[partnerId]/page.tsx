@@ -129,10 +129,10 @@ interface Partner {
 const PARTNERS: Partner[] = [
   {
     id: 1,
-    name: "Le Bistrot Parisien",
+    name: "The Yard",
     category: "Restaurant",
     city: "douala",
-    cover: "/images/restaurant1.jpg",
+    cover: "/images/restaurant_1.jpg",
     rating: 4.9,
     deliveryTime: "25-35 min",
     products: [
