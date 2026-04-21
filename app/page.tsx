@@ -1,1024 +1,493 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Head from 'next/head'
-import { motion, AnimatePresence, useScroll, useSpring, useTransform, useMotionValue } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import {
   MapPin, ArrowRight, Zap, ShieldCheck, Star, User, Menu, Clock, Truck,
   Award, Phone, Mail, ChevronRight, X, Heart,
   Settings, LogOut, ChevronDown, Home, Info, MessageCircle,
-  Globe, Gift, Coffee,
-  Sparkles, ThumbsUp
+  Globe, Gift, Coffee, Store, Bike,
+  Sparkles, ThumbsUp, TrendingUp, Users, ShoppingBag, CheckCircle,
+  Leaf, Rocket, Smartphone, CreditCard, Headphones, Calendar, Utensils,
+  Newspaper
 } from 'lucide-react'
 
 // ========== TYPES ==========
 interface User {
-  id: number
-  name: string
-  email: string
-  createdAt: string
+  id: number; name: string; email: string; createdAt: string;
 }
 
 interface City {
-  id: string
-  name: string
-  description: string
-  gradient: string
-  image: string
-  stats: {
-    deliveryTime: string
-    partners: string
-    rating: string
-  }
+  id: string; name: string; description: string; gradient: string; image: string;
+  stats: { deliveryTime: string; partners: string; rating: string; }
 }
 
 interface Advantage {
-  icon: React.ElementType
-  title: string
-  description: string
-  color: string
+  icon: React.ElementType; title: string; description: string; color: string; gradient: string;
 }
 
-interface Testimonial {
-  name: string
-  role: string
-  rating: number
-  content: string
-}
+// ========== COMPOSANT LOGO AGrandi ==========
+const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => (
+  <Link href="/" className="flex items-center gap-2 group">
+    <Image src="/images/logo.png" alt="WAKA Logo" width={200} height={500} className={`${className} object-contain transition-all duration-300 group-hover:scale-105`} priority />
+  </Link>
+)
 
-// ========== ICÔNES RÉSEAUX SOCIAUX ==========
-const SocialIcons = {
-  Facebook: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  ),
-  Twitter: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
-    </svg>
-  ),
-  Instagram: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-    </svg>
-  ),
-  Linkedin: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  ),
-  Youtube: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
-    </svg>
-  ),
-  Tiktok: ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.58a6.34 6.34 0 0 0 10.86 4.7 6.33 6.33 0 0 0 1.72-4.31V9.49a8.25 8.25 0 0 0 4.77 1.52V7.64a4.83 4.83 0 0 1-2.76-.95z" />
-    </svg>
-  )
-}
+// ========== NAVBAR COMPONENT ==========
+const FloatingNavbar = () => {
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeLink, setActiveLink] = useState('/')
 
-// ========== COMPOSANT LOGO ==========
-const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {
-  const [imageError, setImageError] = useState(false)
-  const logoSrc = "/images/logo.png"
-  const fallbackSrc = "/images/logo-fallback.png"
-
-  return (
-    <Link href="/" className="flex items-center gap-2 group">
-      <div className="relative">
-        <Image
-          src={imageError ? fallbackSrc : logoSrc}
-          alt="WAKA Logo"
-          width={200}
-          height={500}
-          className={`${className} object-contain transition-all duration-300 group-hover:scale-105`}
-          priority
-          onError={() => setImageError(true)}
-        />
-      </div>
-    </Link>
-  )
-}
-
-// ========== COMPOSANT DE NAVIGATION (CORRIGÉ) ==========
-const NavLink = ({ href, icon: Icon, label, mobile = false, onClick }: {
-  href?: string;
-  icon: React.ElementType;
-  label: string;
-  mobile?: boolean;
-  onClick?: () => void;
-}) => {
-  const linkContent = (
-    <>
-      <Icon size={mobile ? 18 : 16} className={mobile ? "text-green-600" : "text-green-500"} />
-      <span className={mobile ? "font-medium" : "text-sm font-medium"}>{label}</span>
-    </>
-  )
-
-  // Si c'est un bouton d'action sans href (ex: dans UserMenu pour fermer le menu)
-  if (onClick && !href) {
-    return (
-      <button onClick={onClick} className={`flex items-center gap-2 transition-colors ${mobile
-        ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50 w-full"
-        : "text-green-700 hover:text-green-500"
-        }`}>
-        {linkContent}
-      </button>
-    )
-  }
-
-  // Gérer le clic pour fermer le menu mobile avant la navigation
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (onClick) {
-      onClick()
-    }
-  }
-
-  return (
-    <Link
-      href={href || '#'}
-      onClick={handleLinkClick}
-      className={`flex items-center gap-2 transition-colors ${mobile
-        ? "py-3 text-green-700 hover:text-green-500 border-b border-green-50"
-        : "text-green-700 hover:text-green-500"
-        }`}
-    >
-      {linkContent}
-    </Link>
-  )
-}
-
-// ========== MENU UTILISATEUR ==========
-const UserMenuComponent = ({ user, onLogout, onClose }: { user: User; onLogout: () => void; onClose: () => void }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-green-100 overflow-hidden z-50"
-    >
-      <div className="p-4 border-b border-green-100">
-        <p className="font-bold text-green-900">{user.name}</p>
-        <p className="text-xs text-green-500">{user.email}</p>
-      </div>
-      <div className="py-2">
-        <NavLink href="/profile" icon={User} label="Mon profil" onClick={onClose} />
-        <NavLink href="/orders" icon={Truck} label="Mes commandes" onClick={onClose} />
-        <NavLink href="/favorites" icon={Heart} label="Mes favoris" onClick={onClose} />
-        <NavLink href="/settings" icon={Settings} label="Paramètres" onClick={onClose} />
-        <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-green-100 mt-2 pt-2">
-          <LogOut size={16} />
-          Déconnexion
-        </button>
-      </div>
-    </motion.div>
-  )
-}
-
-// ========== CUSTOM CURSOR ==========
-const CustomCursor = () => {
-  const cursorX = useMotionValue(0)
-  const cursorY = useMotionValue(0)
-  const [isVisible, setIsVisible] = useState(false)
+  const navLinks = [
+    { name: 'Accueil', href: '/', icon: Home },
+    { name: 'Blog', href: '/blog', icon: Newspaper },
+    { name: 'Devenir Partenaire', href: '/devenir-partenaire', icon: Store },
+    { name: 'Devenir Livreur', href: '/recrutement-livreur', icon: Bike },
+    { name: 'Services', href: '/services', icon: Coffee },
+    { name: 'À propos', href: '/about', icon: Info },
+    { name: 'Contact', href: '/contact', icon: MessageCircle },
+  ]
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX - 16)
-      cursorY.set(e.clientY - 16)
-      if (!isVisible) setIsVisible(true)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
     }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-    const hideCursor = () => setIsVisible(false)
-    const showCursor = () => setIsVisible(true)
-
-    window.addEventListener('mousemove', moveCursor)
-    window.addEventListener('mouseleave', hideCursor)
-    window.addEventListener('mouseenter', showCursor)
-
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
     return () => {
-      window.removeEventListener('mousemove', moveCursor)
-      window.removeEventListener('mouseleave', hideCursor)
-      window.removeEventListener('mouseenter', showCursor)
+      document.body.style.overflow = 'unset'
     }
-  }, [cursorX, cursorY, isVisible])
+  }, [mobileMenuOpen])
 
-  if (!isVisible) return null
+  const menuVariants: Variants = {
+    closed: {
+      opacity: 0,
+      x: '100%',
+      transition: {
+        type: 'spring',
+        stiffness: 400,
+        damping: 40,
+      }
+    },
+    open: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 400,
+        damping: 40,
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      }
+    }
+  }
+
+  const menuItemVariants: Variants = {
+    closed: { opacity: 0, x: 50 },
+    open: { opacity: 1, x: 0 }
+  }
 
   return (
-    <motion.div
-      className="fixed top-0 left-0 w-8 h-8 border-2 border-green-400 rounded-full pointer-events-none z-[999] hidden lg:flex items-center justify-center"
-      style={{
-        x: cursorX,
-        y: cursorY,
-        position: 'fixed'
-      }}
-      transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.5 }}
-    >
-      <div className="w-1 h-1 bg-green-500 rounded-full" />
-    </motion.div>
-  )
-}
+    <>
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 rounded-2xl ${scrolled
+          ? 'bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20'
+          : 'bg-white/80 backdrop-blur-md shadow-lg border border-white/30'
+          }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+          {/* Logo AGRANDI dans la navbar */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Logo className="h-12 w-auto md:h-16" />
+          </motion.div>
 
-// ========== CARD VILLE OPTIMISÉE ==========
-const CityCardComponent = ({ city, index, onSelect }: { city: City; index: number; onSelect: (cityId: string) => void }) => {
-  const [imageError, setImageError] = useState(false)
-  const fallbackImage = "/images/fallback-city.jpg"
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1 lg:gap-2">
+            {navLinks.map((link) => (
+              <Link key={link.name} href={link.href}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer group ${activeLink === link.href
+                    ? 'text-emerald-600'
+                    : 'text-gray-600 hover:text-emerald-600'
+                    }`}
+                  onClick={() => setActiveLink(link.href)}
+                >
+                  <div className="flex items-center gap-2">
+                    <link.icon size={16} className="transition-transform group-hover:scale-110" />
+                    <span className="text-sm font-bold uppercase tracking-tighter">{link.name}</span>
+                  </div>
+                  {activeLink === link.href && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </motion.div>
+              </Link>
+            ))}
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ delay: index * 0.2 }}
-      whileHover={{ y: -10 }}
-      className="group cursor-pointer"
-      onClick={() => onSelect(city.id)}
-    >
-      <div className="relative h-[520px] w-full rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500">
-        <div className="absolute inset-0">
-          <Image
-            src={imageError ? fallbackImage : city.image}
-            alt={city.name}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            onError={() => setImageError(true)}
-          />
-          <div className={`absolute inset-0 bg-gradient-to-t ${city.gradient} opacity-80 group-hover:opacity-70 transition-all`} />
-        </div>
+            <Link href="/login">
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="ml-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-2 rounded-xl text-xs font-black uppercase shadow-lg hover:shadow-xl transition-all"
+              >
+                Connexion
+              </motion.button>
+            </Link>
+          </div>
 
-        <div className="relative h-full p-8 flex flex-col justify-between text-white">
-          <div className="flex justify-end">
+          {/* Mobile Menu Button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden relative w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg flex items-center justify-center z-50"
+          >
             <motion.div
-              whileHover={{ scale: 1.1, x: 5 }}
-              className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/50 flex items-center justify-center"
+              animate={mobileMenuOpen ? "open" : "closed"}
+              className="relative w-5 h-5"
             >
-              <ArrowRight size={20} className="text-white" />
+              <motion.span
+                variants={{
+                  closed: { rotate: 0, y: -6 },
+                  open: { rotate: 45, y: 0 }
+                }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-0 left-0 w-5 h-0.5 bg-white rounded-full"
+              />
+              <motion.span
+                variants={{
+                  closed: { opacity: 1 },
+                  open: { opacity: 0 }
+                }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-2 left-0 w-5 h-0.5 bg-white rounded-full"
+              />
+              <motion.span
+                variants={{
+                  closed: { rotate: 0, y: 6 },
+                  open: { rotate: -45, y: 0 }
+                }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-4 left-0 w-5 h-0.5 bg-white rounded-full"
+              />
             </motion.div>
-          </div>
-
-          <div>
-            <h3 className="text-5xl font-black mb-2 drop-shadow-lg">{city.name}</h3>
-            <p className="text-white/90 text-sm uppercase tracking-wider mb-4">{city.description}</p>
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm flex items-center gap-1">
-                <Clock size={12} />
-                {city.stats.deliveryTime}
-              </span>
-              <span className="text-xs px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm flex items-center gap-1">
-                <Truck size={12} />
-                {city.stats.partners} partenaires
-              </span>
-              <span className="text-xs px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm flex items-center gap-1">
-                <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                {city.stats.rating}
-              </span>
-            </div>
-          </div>
+          </motion.button>
         </div>
-      </div>
-    </motion.div>
+      </motion.nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+            />
+
+            <motion.div
+              variants={menuVariants}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white z-40 md:hidden shadow-2xl"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                <Logo className="h-12 w-auto" />
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+                >
+                  <X size={20} className="text-gray-600" />
+                </motion.button>
+              </div>
+
+              <div className="flex-1 py-8 px-6">
+                <div className="space-y-2">
+                  {navLinks.map((link) => (
+                    <motion.div
+                      key={link.name}
+                      variants={menuItemVariants}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={() => {
+                          setActiveLink(link.href)
+                          setMobileMenuOpen(false)
+                        }}
+                        className={`flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 group ${activeLink === link.href
+                          ? 'bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-600'
+                          : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${activeLink === link.href
+                          ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-500 group-hover:bg-emerald-100'
+                          }`}>
+                          <link.icon size={20} />
+                        </div>
+                        <span className="font-bold text-base">{link.name}</span>
+                        {activeLink === link.href && (
+                          <ChevronRight size={18} className="ml-auto text-emerald-500" />
+                        )}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="my-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+                <motion.div variants={menuItemVariants}>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      className="w-full bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-4 rounded-xl font-black uppercase text-sm shadow-lg"
+                    >
+                      Connexion
+                    </motion.button>
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={menuItemVariants} className="mt-8 p-4 bg-gray-50 rounded-xl">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Contact rapide</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Phone size={14} className="text-emerald-500" />
+                      <span>+237 621 004 286</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Mail size={14} className="text-emerald-500" />
+                      <span>contact@waka.cm</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100">
+                <p className="text-center text-xs text-gray-400">
+                  © 2024 WAKA Delivery Service
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
-// ========== AVANTAGE CARD ==========
-const AdvantageCardComponent = ({ icon: Icon, title, description, color }: Advantage) => {
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all cursor-pointer group"
-    >
-      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-        <Icon size={28} className="text-white" />
+// ========== CARTE VILLE ==========
+const CityCard = ({ city, onClick }: { city: City; onClick: () => void }) => (
+  <motion.div className="relative h-80 rounded-3xl overflow-hidden cursor-pointer group shadow-xl" onClick={onClick} whileHover={{ y: -10 }}>
+    <Image src={city.image} alt={city.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+    <div className={`absolute inset-0 bg-gradient-to-t ${city.gradient} opacity-60 group-hover:opacity-70 transition-opacity`} />
+    <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
+      <h3 className="text-4xl font-black mb-2 uppercase tracking-tighter">{city.name}</h3>
+      <p className="text-white/90 text-sm mb-4 font-bold">{city.description}</p>
+      <div className="flex gap-3">
+        <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1"><Truck size={12} /> {city.stats.deliveryTime}</div>
+        <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1"><Store size={12} /> {city.stats.partners}</div>
       </div>
-      <h3 className="text-xl font-bold text-green-900 mb-2">{title}</h3>
-      <p className="text-green-600 text-sm leading-relaxed">{description}</p>
-    </motion.div>
-  )
-}
-
-// ========== TÉMOIGNAGE CARD ==========
-const TestimonialCardComponent = ({ name, role, content, rating }: Testimonial) => {
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-green-100"
-    >
-      <div className="flex items-center gap-4 mb-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-          {name.charAt(0)}
-        </div>
-        <div>
-          <h4 className="font-bold text-green-900">{name}</h4>
-          <p className="text-xs text-green-500">{role}</p>
-        </div>
-      </div>
-      <div className="flex gap-1 mb-3">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} size={14} className={`${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-        ))}
-      </div>
-      <p className="text-green-700 text-sm leading-relaxed italic">"{content}"</p>
-    </motion.div>
-  )
-}
+    </div>
+  </motion.div>
+)
 
 // ========== PAGE PRINCIPALE ==========
 export default function HomePage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const userMenuRef = useRef<HTMLDivElement>(null)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
-  const { scrollYProgress } = useScroll()
-  const smoothY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 })
-  const rotate = useTransform(smoothY, [0, 1], [0, 10])
-
-  // Données des villes avec fallback
   const cities: City[] = [
-    {
-      id: 'douala',
-      name: 'Douala',
-      description: 'Capitale économique',
-      gradient: 'from-green-600 to-emerald-700',
-      image: '/images/douala.jpg',
-      stats: { deliveryTime: '30-45 min', partners: '156', rating: '4.8' }
-    },
-    {
-      id: 'yaounde',
-      name: 'Yaoundé',
-      description: 'Capitale politique',
-      gradient: 'from-yellow-500 to-amber-600',
-      image: '/images/yaounde.jpg',
-      stats: { deliveryTime: '30-45 min', partners: '142', rating: '4.7' }
-    }
+    { id: 'douala', name: 'Douala', description: 'Capitale économique', gradient: 'from-green-600 to-emerald-700', image: '/images/douala.jpg', stats: { deliveryTime: '30-45 min', partners: '156+', rating: '4.8' } },
+    { id: 'yaounde', name: 'Yaoundé', description: 'Ville aux 7 collines', gradient: 'from-yellow-500 to-amber-600', image: '/images/yaounde.jpg', stats: { deliveryTime: '30-45 min', partners: '142+', rating: '4.7' } }
   ]
 
   const advantages: Advantage[] = [
-    { icon: Zap, title: 'Livraison Express', description: 'Livraison en moins de 45 minutes dans toute la ville.', color: 'from-yellow-400 to-amber-500' },
-    { icon: ShieldCheck, title: 'Paiement Sécurisé', description: 'Transactions 100% sécurisées avec cryptage bancaire.', color: 'from-green-500 to-emerald-600' },
-    { icon: Award, title: 'Qualité Premium', description: 'Partenaires sélectionnés pour leur excellence.', color: 'from-yellow-400 to-amber-500' },
-    { icon: Clock, title: 'Service 24/7', description: 'Disponible jour et nuit pour vos besoins.', color: 'from-green-500 to-emerald-600' }
+    { icon: Zap, title: 'Livraison Express', description: 'Vos commandes livrées en moins de 45 minutes.', color: 'from-yellow-400 to-amber-500', gradient: 'from-yellow-400 to-amber-500' },
+    { icon: Gift, title: 'Programme de Fidélité', description: '1000F = 1 point. À 20 points, la livraison est GRATUITE !', color: 'from-green-500 to-emerald-600', gradient: 'from-green-500 to-emerald-600' },
+    { icon: ShieldCheck, title: 'Sécurité Maximale', description: 'Livreurs certifiés et identifiés (CNI vérifiée).', color: 'from-emerald-500 to-teal-600', gradient: 'from-emerald-500 to-teal-600' }
   ]
-
-  const testimonials: Testimonial[] = [
-    { name: 'Marie N.', role: 'Cliente à Douala', rating: 5, content: 'Service exceptionnel ! Livraison rapide et produits frais. Je recommande vivement WAKA.' },
-    { name: 'Jean-Paul K.', role: 'Client à Yaoundé', rating: 5, content: 'La meilleure application de livraison au Cameroun. Interface fluide et service fiable.' },
-    { name: 'Sarah M.', role: 'Chef d\'entreprise', rating: 4, content: 'Partenariat professionnel au top. L\'équipe est réactive et professionnelle.' }
-  ]
-
-  // Navigation links
-  const navLinks = [
-    { name: 'Accueil', href: '/', icon: Home },
-    { name: 'Services', href: '/services', icon: Coffee },
-    { name: 'À propos', href: '/about', icon: Info },
-    { name: 'Contact', href: '/contact', icon: MessageCircle },
-    { name: 'Blog', href: '/blog', icon: Globe },
-  ]
-
-  useEffect(() => {
-    // Charger l'utilisateur
-    const savedUser = localStorage.getItem('waka_user')
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch (e) {
-        console.error('Erreur lors du chargement de l\'utilisateur', e)
-      }
-    }
-
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setShowUserMenu(false)
-      }
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node) && mobileMenuOpen) {
-        setMobileMenuOpen(false)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    document.addEventListener('click', handleClickOutside)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [mobileMenuOpen])
-
-  const handleLogout = () => {
-    localStorage.removeItem('waka_user')
-    setUser(null)
-    setShowUserMenu(false)
-  }
-
-  const handleCitySelect = (cityId: string) => {
-    router.push(`/${cityId}`)
-  }
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setMobileMenuOpen(false)
-    }
-  }
 
   return (
     <>
-      <Head>
-        <title>WAKA - Livraison ultra-rapide au Cameroun</title>
-        <meta name="description" content="La première plateforme de livraison ultra-rapide au Cameroun. Commandez vos plats et courses préférés en quelques secondes." />
-        <meta name="keywords" content="livraison, cameroun, douala, yaoundé, courses, plats, delivery, waka" />
-        <meta name="author" content="WAKA Delivery Service" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta property="og:title" content="WAKA - Livraison ultra-rapide au Cameroun" />
-        <meta property="og:description" content="Commandez vos plats et courses préférés en quelques secondes." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://waka.cm" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <link rel="canonical" href="https://waka.cm" />
-      </Head>
+      <Head><title>WAKA - Tu commandes, WAKA livre.</title></Head>
 
-      <div className="relative min-h-screen bg-white overflow-x-hidden">
+      <div className="relative min-h-screen bg-white overflow-x-hidden font-sans">
 
-        {/* Curseur personnalisé optimisé */}
-        <CustomCursor />
-
-        {/* Pattern de fond */}
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(34,197,94,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-
-        {/* Orbes flottantes */}
-        <div className="absolute top-20 -left-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute top-40 -right-40 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
-
-        {/* Header */}
-        <motion.nav
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-green-100 shadow-sm' : 'bg-transparent'
-            }`}
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <Logo className="h-10 w-auto md:h-12" />
-
-            {/* Menu Desktop */}
-            <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <NavLink key={link.name} href={link.href} icon={link.icon} label={link.name} />
-              ))}
-
-              <div className="h-6 w-px bg-green-200" />
-
-              {user ? (
-                <div className="relative" ref={userMenuRef}>
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center gap-2 group cursor-pointer"
-                  >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-md group-hover:scale-110 transition-transform">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-sm font-semibold text-green-800 group-hover:text-green-600 transition-colors hidden sm:inline">
-                      {user.name.split(' ')[0]}
-                    </span>
-                    <ChevronDown size={16} className="text-green-600" />
-                  </motion.button>
-
-                  <AnimatePresence>
-                    {showUserMenu && (
-                      <UserMenuComponent user={user} onLogout={handleLogout} onClose={() => setShowUserMenu(false)} />
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <Link href="/login">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                  >
-                    <User size={16} />
-                    Connexion
-                  </motion.button>
-                </Link>
-              )}
-            </div>
-
-            {/* Bouton Hamburger */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 hover:bg-green-50"
-              aria-label="Menu"
-            >
-              <motion.div
-                animate={mobileMenuOpen ? "open" : "closed"}
-                className="relative w-6 h-5"
-              >
-                <motion.span
-                  variants={{
-                    closed: { rotate: 0, y: 0 },
-                    open: { rotate: 45, y: 8 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute top-0 left-0 w-full h-0.5 bg-green-600 rounded-full"
-                />
-                <motion.span
-                  variants={{
-                    closed: { opacity: 1 },
-                    open: { opacity: 0 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute top-2 left-0 w-full h-0.5 bg-green-600 rounded-full"
-                />
-                <motion.span
-                  variants={{
-                    closed: { rotate: 0, y: 0 },
-                    open: { rotate: -45, y: -8 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute top-4 left-0 w-full h-0.5 bg-green-600 rounded-full"
-                />
-              </motion.div>
-            </button>
-          </div>
-
-          {/* Menu Mobile */}
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.div
-                ref={mobileMenuRef}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="md:hidden bg-white/95 backdrop-blur-xl border-b border-green-100 overflow-hidden"
-              >
-                <div className="px-6 py-4 space-y-1">
-                  {navLinks.map((link, index) => (
-                    <motion.div
-                      key={link.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <NavLink
-                        href={link.href}
-                        icon={link.icon}
-                        label={link.name}
-                        mobile={true}
-                        onClick={() => setMobileMenuOpen(false)}
-                      />
-                    </motion.div>
-                  ))}
-
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="pt-4 mt-2 border-t border-green-100"
-                  >
-                    {user ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3 py-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
-                            {user.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-green-900">{user.name}</p>
-                            <p className="text-xs text-green-500">{user.email}</p>
-                          </div>
-                        </div>
-                        <NavLink href="/profile" icon={User} label="Mon profil" mobile={true} onClick={() => setMobileMenuOpen(false)} />
-                        <NavLink href="/orders" icon={Truck} label="Mes commandes" mobile={true} onClick={() => setMobileMenuOpen(false)} />
-                        <NavLink href="/favorites" icon={Heart} label="Mes favoris" mobile={true} onClick={() => setMobileMenuOpen(false)} />
-                        <button
-                          onClick={() => {
-                            handleLogout()
-                            setMobileMenuOpen(false)
-                          }}
-                          className="w-full flex items-center gap-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors px-3"
-                        >
-                          <LogOut size={18} />
-                          <span className="font-medium">Déconnexion</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                        <motion.button
-                          whileTap={{ scale: 0.98 }}
-                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-                        >
-                          <User size={18} />
-                          Connexion / Inscription
-                        </motion.button>
-                      </Link>
-                    )}
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="pt-4 mt-2 border-t border-green-100"
-                  >
-                    <p className="text-xs font-semibold text-green-500 mb-3 flex items-center gap-2">
-                      <Phone size={12} />
-                      CONTACT RAPIDE
-                    </p>
-                    <div className="space-y-2">
-                      <a href="tel:+237621004286" className="flex items-center gap-3 py-2 text-green-600 hover:text-green-500 transition-colors">
-                        <Phone size={16} />
-                        <span className="text-sm">+237 621 004 286</span>
-                      </a>
-                      <a href="mailto:contact@waka.cm" className="flex items-center gap-3 py-2 text-green-600 hover:text-green-500 transition-colors">
-                        <Mail size={16} />
-                        <span className="text-sm">contact@waka.cm</span>
-                      </a>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="pt-4 mt-2"
-                  >
-                    <p className="text-xs font-semibold text-green-500 mb-3">NOUS SUIVRE</p>
-                    <div className="flex gap-3">
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Facebook">
-                        <SocialIcons.Facebook className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Twitter">
-                        <SocialIcons.Twitter className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Instagram">
-                        <SocialIcons.Instagram className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="LinkedIn">
-                        <SocialIcons.Linkedin className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="YouTube">
-                        <SocialIcons.Youtube className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                      <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="TikTok">
-                        <SocialIcons.Tiktok className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                      </a>
-                    </div>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.nav>
+        <FloatingNavbar />
 
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20">
+        <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-6 bg-[radial-gradient(circle_at_top_right,rgba(34,197,94,0.1),transparent)]">
+          <div className="max-w-7xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+              {/* Hero logo encore plus grand */}
+              <div className="flex justify-center mb-8"><Logo className="h-40 w-auto md:h-64" /></div>
+              <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-tight uppercase italic">
+                Tu commandes,<br /><span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">WAKA livre.</span>
+              </h1>
+              <p className="text-xl text-green-600 mb-10 max-w-2xl mx-auto font-bold italic">L'application qui connecte les Camerounais à leurs restaurants locaux préférés.</p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button onClick={() => { document.getElementById('cities')?.scrollIntoView({ behavior: 'smooth' }) }} className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-emerald-600 text-white font-black uppercase text-sm shadow-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all">
+                  Commander maintenant <ChevronRight size={20} />
+                </button>
+                <Link href="/devenir-partenaire" className="w-full sm:w-auto">
+                  <button className="w-full px-10 py-5 rounded-2xl bg-yellow-400 text-black font-black uppercase text-sm shadow-xl border-2 border-yellow-500 hover:bg-yellow-500 flex items-center justify-center gap-2 transition-all">
+                    <Store size={20} /> Devenir partenaire
+                  </button>
+                </Link>
+              </div>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-12 inline-flex items-center gap-3 px-6 py-3 bg-green-50 rounded-full border border-green-100">
+                <Gift className="text-yellow-500" size={20} />
+                <span className="text-xs font-black text-green-700 uppercase tracking-widest">1000F = 1 Point. Livraison offerte à 20 points !</span>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Section Business Engine */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="bg-emerald-900 rounded-[3rem] p-10 text-white relative overflow-hidden group">
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-yellow-400 rounded-2xl flex items-center justify-center text-black mb-6 rotate-3 group-hover:rotate-12 transition-transform shadow-xl">
+                    <Bike size={32} />
+                  </div>
+                  <h2 className="text-3xl font-black uppercase mb-4 italic">Devenez Livreur WAKA</h2>
+                  <p className="text-emerald-100 mb-8 font-bold leading-relaxed">Tu as une moto ? Gagne jusqu'à 80% sur chaque course. Nous recrutons 5 livreurs actifs par zone !</p>
+                  <Link href="/recrutement-livreur" className="inline-flex items-center gap-2 bg-white text-emerald-900 px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-yellow-400 transition-colors">
+                    Postuler maintenant <ArrowRight size={18} />
+                  </Link>
+                </div>
+                <Truck size={200} className="absolute -right-20 -bottom-10 text-white/5 rotate-12" />
+              </div>
+
+              <div className="bg-yellow-400 rounded-[3rem] p-10 text-emerald-950 relative overflow-hidden group">
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-emerald-900 rounded-2xl flex items-center justify-center text-white mb-6 -rotate-3 group-hover:-rotate-12 transition-transform shadow-xl">
+                    <Utensils size={32} />
+                  </div>
+                  <h2 className="text-3xl font-black uppercase mb-4 italic">Boostez votre resto</h2>
+                  <p className="text-emerald-900/80 mb-8 font-bold leading-relaxed">Petits restaurants & commerces : Hébergement GRATUIT. On vous apporte la visibilité et les clients.</p>
+                  <Link href="/devenir-partenaire" className="inline-flex items-center gap-2 bg-emerald-900 text-white px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-black transition-colors">
+                    Inscrire mon resto <ArrowRight size={18} />
+                  </Link>
+                </div>
+                <Store size={200} className="absolute -right-20 -bottom-10 text-emerald-900/5 -rotate-12" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Avantages */}
+        <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-6 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <motion.div
-                className="flex justify-center mb-8"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", delay: 0.2 }}
-              >
-                <div className="relative">
-                  <Logo className="h-32 w-auto md:h-48 lg:h-56" />
-                  <div className="absolute -inset-8 bg-gradient-to-r from-green-500/20 to-yellow-500/20 blur-3xl rounded-full -z-10 animate-pulse-slow" />
+            <h2 className="text-4xl font-black uppercase tracking-tighter text-emerald-950 mb-12 italic">Pourquoi choisir WAKA ?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {advantages.map((adv, i) => (
+                <div key={i} className="bg-white p-8 rounded-3xl shadow-lg border border-green-50 hover:scale-105 transition-transform">
+                  <div className={`w-14 h-14 bg-gradient-to-br ${adv.gradient} rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl`}><adv.icon size={28} /></div>
+                  <h3 className="text-lg font-black text-emerald-900 mb-3 uppercase italic">{adv.title}</h3>
+                  <p className="text-green-600 text-sm font-medium">{adv.description}</p>
                 </div>
-              </motion.div>
-
-              <motion.h1
-                className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Vos courses, notre
-                <br />
-                <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  prestige!
-                </span>
-              </motion.h1>
-
-              <motion.p
-                className="text-green-600 text-lg md:text-xl max-w-2xl mx-auto mb-8"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                La première plateforme de livraison ultra-rapide au Cameroun.
-                Commandez vos plats et courses préférés en quelques secondes.
-              </motion.p>
-
-              <motion.div
-                className="flex flex-col sm:flex-row gap-4 justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => scrollToSection('cities')}
-                  className="group px-8 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                >
-                  Commander maintenant
-                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-                <Link href="/about">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-3 rounded-full border-2 border-green-200 text-green-700 font-bold hover:border-green-400 hover:bg-green-50 transition-all"
-                  >
-                    En savoir plus
-                  </motion.button>
-                </Link>
-              </motion.div>
-
-              {/* Trust indicators */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                className="mt-16 flex flex-wrap justify-center gap-6"
-              >
-                {[
-                  { value: "10k+", label: "Livraisons", icon: Truck },
-                  { value: "250+", label: "Partenaires", icon: Award },
-                  { value: "98%", label: "Satisfaction", icon: ThumbsUp },
-                ].map((stat, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-3 rounded-full bg-white shadow-sm border border-green-100">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                      <stat.icon size={20} className="text-green-500" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-bold text-gray-900">{stat.value}</div>
-                      <div className="text-xs text-gray-500">{stat.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Cities Section */}
-        <section id="cities" className="py-20 bg-gradient-to-b from-white via-green-50/30 to-white">
+        {/* Villes */}
+        <section id="cities" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-4 flex items-center justify-center gap-3">
-                <MapPin size={40} className="text-green-500" />
-                Nos villes partenaires
-              </h2>
-              <p className="text-green-600 text-lg max-w-2xl mx-auto">
-                Découvrez nos services dans les plus grandes villes du Cameroun
-              </p>
-            </motion.div>
-
+            <h2 className="text-4xl font-black uppercase tracking-tighter text-emerald-950 mb-12 italic text-center">Nos zones d'activité</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {cities.map((city, index) => (
-                <CityCardComponent key={city.id} city={city} index={index} onSelect={handleCitySelect} />
+              {cities.map((city) => (
+                <CityCard key={city.id} city={city} onClick={() => router.push(`/${city.id}`)} />
               ))}
             </div>
           </div>
         </section>
 
-        {/* Advantages Section */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-4">
-                Pourquoi choisir WAKA ?
-              </h2>
-              <p className="text-green-600 text-lg max-w-2xl mx-auto">
-                Une expérience de livraison repensée pour vous
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {advantages.map((adv, index) => (
-                <AdvantageCardComponent key={index} {...adv} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="py-20 bg-gradient-to-br from-green-900 to-emerald-900">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {[
-                { value: "10,000+", label: "Livraisons effectuées", icon: Truck },
-                { value: "250+", label: "Partenaires commerçants", icon: Award },
-                { value: "4.9/5", label: "Note moyenne clients", icon: Star }
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="text-center text-white"
-                >
-                  <div className="flex justify-center mb-4">
-                    <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-                      <stat.icon size={32} className="text-yellow-400" />
-                    </div>
-                  </div>
-                  <div className="text-5xl font-bold mb-2">{stat.value}</div>
-                  <div className="text-green-200 font-medium">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-4">
-                Ce que nos clients disent
-              </h2>
-              <p className="text-green-600 text-lg max-w-2xl mx-auto">
-                Des milliers de clients satisfaits à travers le Cameroun
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial, index) => (
-                <TestimonialCardComponent key={index} {...testimonial} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-green-500 to-emerald-600">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Prêt à passer commande ?
-              </h2>
-              <p className="text-green-100 text-lg mb-8">
-                Rejoignez des milliers de clients qui nous font confiance chaque jour
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => scrollToSection('cities')}
-                className="px-8 py-3 rounded-full bg-white text-green-600 font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
-              >
-                <Gift size={18} />
-                Commander maintenant
-              </motion.button>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="bg-white border-t border-green-100 py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              <div>
-                <Logo className="h-10 w-auto mb-4" />
-                <p className="text-green-600 text-sm">
-                  La première plateforme de livraison ultra-rapide au Cameroun.
-                </p>
+        {/* Footer avec logo AGRANDI */}
+        <footer className="bg-emerald-950 text-white py-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+              <div className="space-y-6">
+                <Logo className="h-20 w-auto brightness-200" />
+                <p className="text-emerald-100/60 text-sm italic font-medium leading-relaxed">Tu commandes, WAKA livre. La plateforme n°1 de livraison au Cameroun.</p>
               </div>
-
               <div>
-                <h4 className="font-bold text-green-900 mb-4">Navigation</h4>
-                <ul className="space-y-2">
-                  <li><Link href="/" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Home size={14} /> Accueil</Link></li>
-                  <li><Link href="/about" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Info size={14} /> À propos</Link></li>
-                  <li><Link href="/contact" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><MessageCircle size={14} /> Contact</Link></li>
-                  <li><Link href="/services" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Coffee size={14} /> Services</Link></li>
-                  <li><Link href="/blog" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><Globe size={14} /> Blog</Link></li>
+                <h4 className="font-black uppercase text-xs tracking-widest text-yellow-400 mb-8">Navigation</h4>
+                <ul className="space-y-4">
+                  <li><Link href="/" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Home size={14} /> Accueil</Link></li>
+                  <li><Link href="/blog" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Newspaper size={14} /> Blog</Link></li>
+                  <li><Link href="/devenir-partenaire" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Store size={14} /> Devenir Partenaire</Link></li>
+                  <li><Link href="/recrutement-livreur" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Bike size={14} /> Devenir Livreur</Link></li>
+                  <li><Link href="/services" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Coffee size={14} /> Services</Link></li>
+                  <li><Link href="/about" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Info size={14} /> À propos</Link></li>
+                  <li><Link href="/contact" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><MessageCircle size={14} /> Contact</Link></li>
                 </ul>
               </div>
-
               <div>
-                <h4 className="font-bold text-green-900 mb-4">Services</h4>
-                <ul className="space-y-2">
-                  <li><Link href="/douala" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><MapPin size={14} /> Douala</Link></li>
-                  <li><Link href="/yaounde" className="text-green-600 text-sm hover:text-green-500 transition-colors flex items-center gap-2"><MapPin size={14} /> Yaoundé</Link></li>
+                <h4 className="font-black uppercase text-xs tracking-widest text-yellow-400 mb-8">Business</h4>
+                <ul className="space-y-4">
+                  <li><Link href="/devenir-partenaire" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Store size={14} /> Devenir Partenaire</Link></li>
+                  <li><Link href="/recrutement-livreur" className="text-emerald-100/80 hover:text-white transition-colors text-sm font-bold flex items-center gap-2"><Bike size={14} /> Devenir Livreur</Link></li>
                 </ul>
               </div>
-
               <div>
-                <h4 className="font-bold text-green-900 mb-4">Contact</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2 text-green-600 text-sm">
-                    <Phone size={14} />
-                    <span>+237 621 004 286</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-green-600 text-sm">
-                    <Mail size={14} />
-                    <span>contact@waka.cm</span>
+                <h4 className="font-black uppercase text-xs tracking-widest text-yellow-400 mb-8">Contact</h4>
+                <ul className="space-y-4 text-sm font-bold">
+                  <li className="flex items-center gap-3"><Phone size={16} className="text-emerald-400" /> +237 621 004 286</li>
+                  <li className="flex items-center gap-3"><Mail size={16} className="text-emerald-400" /> contact@waka.cm</li>
+                  <li className="flex items-center gap-3"><MapPin size={16} className="text-emerald-400" /> Douala & Yaoundé</li>
+                  <li className="mt-4">
+                    <Link href="/contact" className="inline-flex items-center gap-2 text-emerald-400 hover:text-yellow-400 transition-colors text-sm font-bold">
+                      <MessageCircle size={16} /> Formulaire de contact
+                    </Link>
                   </li>
                 </ul>
-                <div className="flex gap-3 mt-4">
-                  <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Facebook">
-                    <SocialIcons.Facebook className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Twitter">
-                    <SocialIcons.Twitter className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="Instagram">
-                    <SocialIcons.Instagram className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-100 transition-colors group" aria-label="LinkedIn">
-                    <SocialIcons.Linkedin className="w-4 h-4 text-green-600 group-hover:text-green-500" />
-                  </a>
-                </div>
               </div>
             </div>
-
-            <div className="border-t border-green-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-green-500 text-xs">
-                © 2024 WAKA Delivery Service. Tous droits réservés.
-              </p>
-              <div className="flex gap-4">
-                <Link href="/terms" className="text-green-500 text-xs hover:text-green-600 transition-colors">
-                  Conditions d'utilisation
-                </Link>
-                <Link href="/privacy" className="text-green-500 text-xs hover:text-green-600 transition-colors">
-                  Politique de confidentialité
-                </Link>
+            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+              <p className="text-emerald-100/40 text-[10px] font-black uppercase tracking-widest">© 2024 WAKA Delivery Service. Cameroun.</p>
+              <div className="flex gap-6">
+                <Link href="/terms" className="text-emerald-100/40 text-[10px] font-black uppercase hover:text-white transition-colors">Conditions</Link>
+                <Link href="/privacy" className="text-emerald-100/40 text-[10px] font-black uppercase hover:text-white transition-colors">Confidentialité</Link>
+                <Link href="/contact" className="text-emerald-100/40 text-[10px] font-black uppercase hover:text-white transition-colors">Contact</Link>
               </div>
             </div>
           </div>
         </footer>
 
-        <style jsx global>{`
-          @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
-          }
-          .animate-blob {
-            animation: blob 7s infinite;
-          }
-          .animation-delay-2000 {
-            animation-delay: 2s;
-          }
-          .animation-delay-4000 {
-            animation-delay: 4s;
-          }
-          @keyframes pulse-slow {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.05); }
-          }
-          .animate-pulse-slow {
-            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-          }
-        `}</style>
       </div>
     </>
   )
